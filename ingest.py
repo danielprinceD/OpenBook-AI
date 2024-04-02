@@ -5,23 +5,23 @@ import torch
 import os
 import numpy as np
 from langchain.chains.question_answering import load_qa_chain
-
+from googletrans import Translator
 from langchain.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM 
 from pinecone import Pinecone
 from transformers import pipeline
-pc = Pinecone(api_key="0f3718e3-1756-4a37-9583-839c535e296c")
-index_name = "openbook"
+# pc = Pinecone(api_key="0f3718e3-1756-4a37-9583-839c535e296c")
+# index_name = "openbook"
 
-device = torch.device('cpu')
-checkpoint = "MBZUAI/LaMini-T5-738M"
-print(f"Checkpoint path: {checkpoint}")  # Add this line for debugging
-tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-base_model = AutoModelForSeq2SeqLM.from_pretrained(
-    checkpoint,
-    device_map=device,
-    torch_dtype=torch.float32
-)
+# device = torch.device('cpu')
+# checkpoint = "MBZUAI/LaMini-T5-738M"
+# print(f"Checkpoint path: {checkpoint}")  # Add this line for debugging
+# tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+# base_model = AutoModelForSeq2SeqLM.from_pretrained(
+#     checkpoint,
+#     device_map=device,
+#     torch_dtype=torch.float32
+# )
 
 
 def main():
@@ -56,39 +56,41 @@ def main():
     
     # GET DATA
     
-    embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-    index = pc.Index(index_name)
+    # embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    # index = pc.Index(index_name)
 
-    text = "what books written by abdul kalam"
+    # text = "what books written by abdul kalam"
     
-    text_embed = embeddings.embed_query(text)
+    # text_embed = embeddings.embed_query(text)
     
-    get_response = index.query(
-        namespace = "np4",
-        vector = text_embed,
-        top_k =  4,
-        includeMetadata = True
+    # get_response = index.query(
+    #     namespace = "np4",
+    #     vector = text_embed,
+    #     top_k =  4,
+    #     includeMetadata = True
 
-    )
+    # )
     
-    meta = [ i.metadata['text'] for i in  get_response.matches]
+    # meta = [ i.metadata['text'] for i in  get_response.matches]
     
     
-    pipe = pipeline(
-        'text2text-generation',
-        model = base_model,
-        tokenizer = tokenizer,
-        max_length = 256,
-        do_sample = True,
-        temperature = 0.2,
-        top_p= 0.20,
-    )
-    local_llm = HuggingFacePipeline(pipeline=pipe)
+    # pipe = pipeline(
+    #     'text2text-generation',
+    #     model = base_model,
+    #     tokenizer = tokenizer,
+    #     max_length = 256,
+    #     do_sample = True,
+    #     temperature = 0.2,
+    #     top_p= 0.20,
+    # )
+    # local_llm = HuggingFacePipeline(pipeline=pipe)
     
-    chain = load_qa_chain(local_llm , chain_type="stuff")
-    ans = chain.run(input_documents = meta , question = text)
+    # chain = load_qa_chain(local_llm , chain_type="stuff")
+    # ans = chain.run(input_documents = meta , question = text)
     
-    print(ans)
+    # print(ans)
+    translator = Translator()
+    print(translator.translate(text = 'what is my name ' , dest = 'ta').text)
 
     
     

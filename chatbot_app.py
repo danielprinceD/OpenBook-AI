@@ -1,5 +1,6 @@
 import streamlit as st 
 import os
+from googletrans import Translator
 import base64
 import time
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM 
@@ -17,7 +18,7 @@ from pinecone import Pinecone
 
 pc = Pinecone(api_key="0f3718e3-1756-4a37-9583-839c535e296c")
 index_name = "openbook"
-
+translator = Translator()
 st.set_page_config(layout="wide")
 
 device = torch.device('cpu')
@@ -137,13 +138,16 @@ def display_conversation(history):
         message(history["past"][i], is_user=True, key=str(i) + "_user")
         message(history["generated"][i],key=str(i))
 
+
 def main():
+ tamil = True
  st.markdown("<h2 style='text-align: center; color:red;'>Upload your PDF</h2>", unsafe_allow_html=True)
  uploaded_file = st.file_uploader("", type=["pdf"])
-
+ 
  if uploaded_file is not None :
     filepath = "Model/"+uploaded_file.name
- 
+    
+    
     
     col1, col2= st.columns([1,2])
     with col1:
@@ -153,6 +157,10 @@ def main():
         with st.spinner('Embeddings are in process...'):
             ingested_data = data_ingestion(uploaded_file.name)
             st.success('Embeddings are created successfully!')
+            
+            if st.button("Translate") :
+                    tamil = not tamil
+            
             st.markdown("<h4 style color:black;'>Chat Here</h4>", unsafe_allow_html=True)
 
 
@@ -162,13 +170,16 @@ def main():
             st.session_state["generated"] = ["I am ready to help you"]
         if "past" not in st.session_state:
             st.session_state["past"] = ["Hey there!"]
-                
+        
+        
         if user_input:
-            answer = process_answer(user_input , uploaded_file.name)
+            translated = translator.translate(text=process_answer(user_input , uploaded_file.name) , dest = 'ta').text
+            answer = translated if tamil else process_answer(user_input , uploaded_file.name)
             st.session_state["past"].append(user_input)
-            response = answer
+            response =  answer
             st.session_state["generated"].append(response)
-
+            
+            
         if st.session_state["generated"]:
             display_conversation(st.session_state)
         
