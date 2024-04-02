@@ -43,7 +43,7 @@ def data_ingestion(filename):
     embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     embedded_texts = [ embeddings.embed_query(text) for text in text_list]
-    
+    namespace = filename.split("_")[-1].split('.')[0]
     index = pc.Index(index_name)
     for ids , vect in enumerate(embedded_texts) :
        
@@ -56,7 +56,7 @@ def data_ingestion(filename):
             "text" : text_list[ids]
         }
         }
-    ], namespace = "np4"
+    ], namespace = namespace
                      )
 
     return
@@ -79,16 +79,16 @@ def llm_pipeline():
 
 
 
-def process_answer(instruction):
+def process_answer(instruction , filename):
     embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     index = pc.Index(index_name)
 
     text = instruction
     
     text_embed = embeddings.embed_query(text)
-    
+    namespace = filename.split("_")[-1].split('.')[0]
     get_response = index.query(
-        namespace = "np4",
+        namespace = namespace,
         vector = text_embed,
         top_k =  4,
         includeMetadata = True
@@ -122,16 +122,13 @@ def get_file_size(file):
     return file_size
 
 @st.cache_data
-#function to display the PDF of a given file 
 def displayPDF(file):
     # Opening file from file path
     with open(file, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
 
-    # Embedding PDF in HTML
     pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
 
-    # Displaying File
     st.markdown(pdf_display, unsafe_allow_html=True)
 
 # Display conversation history using Streamlit messages
@@ -161,20 +158,17 @@ def main():
 
         user_input = st.text_input("", key="input")
 
-        # Initialize session state for generated responses and past messages
         if "generated" not in st.session_state:
             st.session_state["generated"] = ["I am ready to help you"]
         if "past" not in st.session_state:
             st.session_state["past"] = ["Hey there!"]
                 
-            # Search the database for a response based on user input and update session state
         if user_input:
-            answer = process_answer(user_input)
+            answer = process_answer(user_input , uploaded_file.name)
             st.session_state["past"].append(user_input)
             response = answer
             st.session_state["generated"].append(response)
 
-            # Display conversation history using Streamlit messages
         if st.session_state["generated"]:
             display_conversation(st.session_state)
         
