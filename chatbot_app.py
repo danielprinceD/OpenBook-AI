@@ -15,8 +15,8 @@ from langchain.vectorstores import Chroma
 from langchain.llms import HuggingFacePipeline
 from streamlit_chat import message
 from pinecone import Pinecone
-
-pc = Pinecone(api_key="0f3718e3-1756-4a37-9583-839c535e296c")
+os.environ['CURL_CA_BUNDLE'] = ''
+pc = Pinecone(api_key="0033beeb-4ec5-43e4-87e7-340da2c35638")
 index_name = "openbook"
 translator = Translator()
 st.set_page_config(layout="wide")
